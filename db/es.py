@@ -21,18 +21,18 @@ class ES:
             config = ConfigParser()
             config.read(self.path + '/conf/app.conf')
             self.host = config.get('es', 'host').split(',')
+            self.index = config.get('es', 'index')
         except (NoSectionError, NoOptionError):
-            self.host = None
+            raise
 
-    def add_document(self, index, body):
+    def add(self, records):
         """
         添加数据
-        :param index: 索引名称
-        :param body: 内容
+        :param records: 内容
         :return: bool
         """
         try:
-            self.es.index(index=index, body=body)
+            self.es.index(index=self.index, body=records)
             return True
         except ElasticsearchException as e:
             raise e

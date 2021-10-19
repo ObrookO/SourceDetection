@@ -1,20 +1,22 @@
-from configparser import ConfigParser, NoSectionError, NoOptionError
 import os
+import sys
+from configparser import ConfigParser, NoSectionError, NoOptionError
+from datetime import datetime, timedelta
+
 import requests
 from bs4 import BeautifulSoup
-import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from db.es import ES
+from db.mysql import Mysql
 
 
 class SourceDetection:
     def __init__(self):
         self.url = 'https://github.com/'
         self.path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.db_builder = self.__get_db_builder()
         self.session = requests.Session()
-        self.es = ES()
 
         self.__get_config()
         self.__login()
@@ -36,6 +38,9 @@ class SourceDetection:
 
         except (NoSectionError, NoOptionError):
             self.username = self.email = self.keywords = None
+
+    def __get_db_builder(self):
+        return Mysql()
 
     def __login(self):
         """
@@ -82,27 +87,29 @@ class SourceDetection:
         '''
         bs = BeautifulSoup(search_res.text, 'lxml')
         repo_list = bs.select('li.repo-list-item')
+        data = []
         for r in repo_list:
             '''
             获取仓库所属用户的真实姓名、用户名、邮箱、仓库地址和更新时间
             '''
             repo_href = r.select_one('a.v-align-middle')['href']
-            repo_update_time = r.select_one('relative-time')['datetime']
             username, realname, email = self.__get_user_info(repo_href)
-
-            data = {
-                'username': username,
-                'realname': realname,
-                'email': email,
+            repo_update_time = r.select_one('relative-time')['datetime']
+            utc_time = datetime.strptime(repo_update_time, '%Y-%m-%dT%H:%M:%SZ')
+            local_time = utc_time + timedelta(hours=8)
+            data.append({
+                'username': '' if username is None else username,
+                'realname': '' if realname is None else realname,
+                'email': '' if email is None else email,
                 'href': self.url + repo_href.lstrip('/'),
-                'time': repo_update_time
-            }
+                'last_update_at': local_time
+            })
 
-            doc_res = self.es.add_document(index='source_detection', body=data)
-            if doc_res:
-                print('Success!')
-            else:
-                print('Failed!')
+        doc_res = self.db_builder.add(data)
+        if doc_res:
+            print('Add Records Success!')
+        else:
+            print('Add Records Failed!')
 
         '''
         获取剩余页的数据
