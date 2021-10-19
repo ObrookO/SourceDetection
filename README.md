@@ -9,7 +9,9 @@
    
    2、使用命令 `pip3 install -r requirements.txt` 安装依赖包。
    
-   3、添加配置信息，配置文件位于conf/app.conf。
+   3、把conf/app.conf.example重命名为app.conf。
+   
+   4、添加配置信息。
    
     [main]                              # 主要配置，名称不可变
     username=xxx                        # GitHub用户名
@@ -18,10 +20,17 @@
     
     [es]                                # es相关配置，名称不可变
     host=xxx                            # es地址，若有多个，形式为：xxx,xxx,xxx,如不填默认使用127.0.0.1:9200
+    
+    [mysql]                             # mysql相关配置，名称不可变
+    host=                               # 地址
+    port=                               # 端口
+    user=                               # 用户名
+    pass=                               # 密码
+    dbname=                             # 数据库
    
    
-   4、运行
+   5、运行
    
-   执行以下命令来运行程序：
-   
-   `python3 src/sd.py`
+执行以下命令来运行程序：
+
+    `python3 src/sd.py`

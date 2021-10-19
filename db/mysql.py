@@ -13,6 +13,7 @@ class Mysql:
         try:
             self.conn = pymysql.connect(
                 host=self.host,
+                port=self.port,
                 user=self.user,
                 passwd=self.passwd,
                 database=self.dbname
@@ -31,6 +32,7 @@ class Mysql:
             config = ConfigParser()
             config.read(self.path + '/conf/app.conf')
             self.host = config.get('mysql', 'host')
+            self.port = config.getint('mysql', 'port')
             self.user = config.get('mysql', 'user')
             self.passwd = config.get('mysql', 'pass')
             self.dbname = config.get('mysql', 'dbname')
@@ -55,7 +57,7 @@ class Mysql:
 
                 for record in records:
                     values = "','".join(record.values())
-                    sql = sql + '(' + values + '),'
+                    sql = sql + "('" + values + "'),"
 
                 sql = sql.rstrip(',')
             elif isinstance(records, dict):
@@ -65,5 +67,6 @@ class Mysql:
 
             print(sql + "\n")
             self.cursor.execute(sql)
+            self.conn.commit()
         except pymysql.MySQLError as e:
             raise e

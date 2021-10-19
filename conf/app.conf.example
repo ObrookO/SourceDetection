@@ -9,6 +9,7 @@ index=
 
 [mysql]
 host=
+port=
 user=
 pass=
 dbname=

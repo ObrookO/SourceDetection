@@ -102,7 +102,7 @@ class SourceDetection:
                 'realname': '' if realname is None else realname,
                 'email': '' if email is None else email,
                 'href': self.url + repo_href.lstrip('/'),
-                'last_update_at': local_time
+                'last_update_at': local_time.strftime('%Y-%m-%d %H:%M:%S')
             })
 
         doc_res = self.db_builder.add(data)
